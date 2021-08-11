@@ -353,7 +353,7 @@ public class Game {
                     .collect(Collectors.toList());
         }
 
-        private static int getScore(Move move, PlayerType[][] field) {
+        private static double getScore(Move move, PlayerType[][] field) {
             PlayerType type = field[move.getxFrom()][move.getyFrom()];
             int score = 0;
             for (int x = 0; x < fieldSizeX; x++) {
@@ -539,9 +539,9 @@ public class Game {
 
         static class MoveWithScore {
             private Move move;
-            private int score;
+            private double score;
 
-            public MoveWithScore(Move move, int score) {
+            public MoveWithScore(Move move, double score) {
                 this.move = move;
                 this.score = score;
             }
@@ -550,11 +550,11 @@ public class Game {
                 return move;
             }
 
-            public int getScore() {
+            public double getScore() {
                 return score;
             }
 
-            public void setScore(int score) {
+            public void setScore(double score) {
                 this.score = score;
             }
 
