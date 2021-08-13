@@ -149,8 +149,7 @@ public class Main {
         pos = pos.clone();
         List<Figure> figures = pos.getFigures();
         boolean worked = false;
-        for (int i = 0; i < figures.size(); i++) {
-            Figure figure = figures.get(i);
+        for (Figure figure : figures) {
             if (figure.getX() == move.getxFrom() && figure.getY() == move.getyFrom()) {
                 if (figure.getPlayerType() == pos.getPlayerToMove()) {
                     figure.setX(move.getxTo());
@@ -229,11 +228,9 @@ public class Main {
         for (Figure figure : figures) {
             PlayerType type = figure.getPlayerType();
             if (type == PLAYER1) {
-                result |= 0 << (figure.getX() * 2 + figure.getY() * 8) + 1;
                 result |= 1 << (figure.getX() * 2 + figure.getY() * 8) + 2;
             } else if (type == PLAYER2) {
                 result |= 1 << (figure.getX() * 2 + figure.getY() * 8) + 1;
-                result |= 0 << (figure.getX() * 2 + figure.getY() * 8) + 2;
             } else {
                 throw new WhyAreYouEditingMyCodeException();
             }
