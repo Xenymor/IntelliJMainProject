@@ -2,10 +2,11 @@ package PawnGame.PreCalculation;
 
 import PawnGame.PlayerType;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Figure {
+public class Figure implements Serializable {
     private int x;
     private int y;
     private PlayerType playerType;

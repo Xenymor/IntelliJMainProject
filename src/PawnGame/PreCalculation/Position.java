@@ -2,9 +2,10 @@ package PawnGame.PreCalculation;
 
 import PawnGame.PlayerType;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Position {
+public class Position implements Serializable {
     private List<Figure> figures;
     private PlayerType playerToMove;
 
