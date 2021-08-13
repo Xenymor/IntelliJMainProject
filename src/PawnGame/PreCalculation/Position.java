@@ -35,10 +35,6 @@ public class Position implements Serializable {
         return new Position(Figure.deepClone(figures), playerToMove);
     }
 
-    public void setFigures(List<Figure> figures) {
-        this.figures = figures;
-    }
-
     public void setPlayerToMove(PlayerType playerToMove) {
         this.playerToMove = playerToMove;
     }

@@ -45,10 +45,6 @@ public class Figure implements Serializable {
         return playerType;
     }
 
-    public void setPlayerType(PlayerType playerType) {
-        this.playerType = playerType;
-    }
-
     @Override
     public String toString() {
         return "Figure{" +
