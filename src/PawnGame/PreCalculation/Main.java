@@ -12,21 +12,21 @@ import static PawnGame.PlayerType.*;
 
 public class Main {
     private final int fieldSize = 4;
-    HashMap<Integer, List<Integer>> knownPositions = new HashMap<>();
-    private HashMap<Integer, Integer> scores;
+    HashMap<Long, List<Long>> knownPositions = new HashMap<>();
+    private HashMap<Long, Integer> scores;
 
     public static void main(String[] args) throws IllegalMoveException, InterruptedException, IOException, ClassNotFoundException, WhyAreYouEditingMyCodeException {
         new Main().run();
     }
 
     private void printStartingScore() throws IOException, ClassNotFoundException, WhyAreYouEditingMyCodeException {
-        ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("scores.txt"));
-        HashMap<Integer, Integer> scores = (HashMap<Integer, Integer>) objectInputStream.readObject();
-        int startingPositionAsInt = getStartingPositionAsInt();
+        ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("scores.obj"));
+        HashMap<Long, Long> scores = (HashMap<Long, Long>) objectInputStream.readObject();
+        long startingPositionAsInt = getStartingPositionAsInt();
         System.out.println(startingPositionAsInt + " = " + scores.get(startingPositionAsInt));
     }
 
-    private int getStartingPositionAsInt() throws WhyAreYouEditingMyCodeException {
+    private long getStartingPositionAsInt() throws WhyAreYouEditingMyCodeException {
         List<Figure> figures = new ArrayList<>();
         for (int x = 0; x < fieldSize; x++) {
             for (int y = 0; y < fieldSize; y++) {
@@ -41,7 +41,7 @@ public class Main {
                 }
             }
         }
-        return posToInt(figures, PLAYER1);
+        return posToLong(figures, PLAYER1);
     }
 
     private void run() throws IllegalMoveException, WhyAreYouEditingMyCodeException, IOException {
@@ -59,38 +59,38 @@ public class Main {
                 }
             }
         }
-        int field = posToInt(figures, PLAYER1);
+        long field = posToLong(figures, PLAYER1);
         knownPositions.put(field, new ArrayList<>());
         addAllMoves(field);
         scores = new HashMap<>();
-        Integer[] keys = knownPositions.keySet().toArray(new Integer[1]);
-        for (Integer aInteger : keys) {
-            PlayerType wonPlayerType = whoHasWon(intToPos(aInteger, fieldSize));
+        Long[] keys = knownPositions.keySet().toArray(new Long[1]);
+        for (Long aLong : keys) {
+            PlayerType wonPlayerType = whoHasWon(longToPos(aLong, fieldSize));
             if (wonPlayerType != NEUTRAL) {
                 if (wonPlayerType == PLAYER1) {
-                    setScores(aInteger, 1);
+                    setScores(aLong, 1);
                 } else if (wonPlayerType == PLAYER2) {
-                    setScores(aInteger, -1);
+                    setScores(aLong, -1);
                 } else {
                     throw new WhyAreYouEditingMyCodeException();
                 }
             }
         }
-        for (Integer key : keys) {
+        for (Long key : keys) {
             if (!scores.containsKey(key)) {
                 scores.put(key, 0);
             }
         }
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("scores.txt"));
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("scores.obj"));
         objectOutputStream.writeObject(scores);
         objectOutputStream.close();
         System.out.println("Finished");
         System.out.println(scores);
     }
 
-    private void setScores(Integer position, int scoreToSet) throws WhyAreYouEditingMyCodeException {
+    private void setScores(Long position, int scoreToSet) throws WhyAreYouEditingMyCodeException {
         if (scores.containsKey(position)) {
-            Position pos = intToPos(position, fieldSize);
+            Position pos = longToPos(position, fieldSize);
             if (pos.getPlayerToMove() == PLAYER1) {
                 if (scoreToSet < scores.get(position)) {
                     scores.put(position, scoreToSet);
@@ -105,32 +105,37 @@ public class Main {
         } else {
             scores.put(position, scoreToSet);
         }
-        List<Integer> intList = knownPositions.get(position);
+        List<Long> intList = knownPositions.get(position);
         if (intList == null)
             return;
-        List<Integer> prev = intList.subList(0, intList.size());
+        List<Long> prev = intList.subList(0, intList.size());
         knownPositions.remove(position);
-        for (Integer aInteger : prev) {
-            setScores(aInteger, -scoreToSet);
+        for (Long aLong : prev) {
+            setScores(aLong, -scoreToSet);
         }
     }
 
-    private void addAllMoves(int field) throws IllegalMoveException, WhyAreYouEditingMyCodeException {
-        Position pos = intToPos(field, fieldSize);
-        PlayerType playerToMove = pos.getPlayerToMove();
-        PlayerType wonPlayer = whoHasWon(pos);
-        if (wonPlayer != NEUTRAL) {
-            return;
-        }
-        List<Move> allMoves = getAllAllowedMoves(pos.getFigures(), playerToMove);
-        for (Move allMove : allMoves) {
-            Position potentialPos = doMove(allMove, pos);
-            potentialPos.setPlayerToMove(getEnemy(potentialPos.getPlayerToMove()));
-            int potentialPosInt = posToInt(potentialPos.getFigures(), potentialPos.getPlayerToMove());
-            if (!addField(potentialPosInt, field)) {
-                continue;
+    private void addAllMoves(long field) throws IllegalMoveException, WhyAreYouEditingMyCodeException {
+        try {
+            Position pos = longToPos(field, fieldSize);
+            PlayerType playerToMove = pos.getPlayerToMove();
+            PlayerType wonPlayer = whoHasWon(pos);
+            if (wonPlayer != NEUTRAL) {
+                return;
             }
-            addAllMoves(potentialPosInt);
+            List<Move> allMoves = getAllAllowedMoves(pos.getFigures(), playerToMove);
+            for (Move allMove : allMoves) {
+                Position potentialPos = doMove(allMove, pos);
+                potentialPos.setPlayerToMove(getEnemy(potentialPos.getPlayerToMove()));
+                long potentialPosInt = posToLong(potentialPos.getFigures(), potentialPos.getPlayerToMove());
+                if (!addField(potentialPosInt, field)) {
+                    continue;
+                }
+                addAllMoves(potentialPosInt);
+            }
+        } catch (StackOverflowError e) {
+            System.out.println(Long.toBinaryString(field));
+            throw e;
         }
     }
 
@@ -165,7 +170,7 @@ public class Main {
         return pos;
     }
 
-    private boolean addField(int field, int previous) {
+    private boolean addField(long field, long previous) {
         boolean wasAdded = false;
         if (!knownPositions.containsKey(field)) {
             knownPositions.put(field, new ArrayList<>());
@@ -222,8 +227,8 @@ public class Main {
         return true;
     }
 
-    public static int posToInt(List<Figure> figures, PlayerType playerToMove) throws WhyAreYouEditingMyCodeException {
-        int result = 0;
+    public static long posToLong(List<Figure> figures, PlayerType playerToMove) throws WhyAreYouEditingMyCodeException {
+        long result = 0;
         result |= playerToMove == PLAYER1 ? 0 : playerToMove == PLAYER2 ? 1 : -1;
         for (Figure figure : figures) {
             PlayerType type = figure.getPlayerType();
@@ -238,14 +243,14 @@ public class Main {
         return result;
     }
 
-    public static Position intToPos(Integer number, int fieldSize) {
+    public static Position longToPos(Long number, long fieldSize) {
         List<Figure> figures = new ArrayList<>();
-        int i = (number) & 1;
+        long i = (number) & 1;
         PlayerType playerToMove = i == 0 ? PLAYER1 : PLAYER2;
         for (int x = 0; x < fieldSize; x++) {
             for (int y = 0; y < fieldSize; y++) {
-                int firstBit = (number >> (x * 2 + 8 * y) + 1) & 1;
-                int secondBit = (number >> (x * 2 + 8 * y) + 2) & 1;
+                long firstBit = (number >> (x * 2 + 8 * y) + 1) & 1;
+                long secondBit = (number >> (x * 2 + 8 * y) + 2) & 1;
                 if (firstBit == 0 && secondBit == 1) {
                     figures.add(new Figure(x, y, PLAYER1));
                 } else if (firstBit == 1 && secondBit == 0) {
