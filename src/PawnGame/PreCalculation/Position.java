@@ -18,6 +18,10 @@ public class Position implements Serializable {
         return figures;
     }
 
+    public void setFigures(List<Figure> figures) {
+        this.figures = figures;
+    }
+
     public PlayerType getPlayerToMove() {
         return playerToMove;
     }

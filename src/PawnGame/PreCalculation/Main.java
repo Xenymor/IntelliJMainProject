@@ -11,22 +11,24 @@ import java.util.List;
 import static PawnGame.PlayerType.*;
 
 public class Main {
-    private final int fieldSize = 4;
+    private final int fieldSize = 2;
     HashMap<Long, List<Long>> knownPositions = new HashMap<>();
     private HashMap<Long, Integer> scores;
+    private final String pathToSaveFile = "scores2x2.obj";
 
-    public static void main(String[] args) throws IllegalMoveException, InterruptedException, IOException, ClassNotFoundException, WhyAreYouEditingMyCodeException {
+    public static void main(String[] args) throws IllegalMoveException, IOException, ClassNotFoundException, WhyAreYouEditingMyCodeException {
         new Main().run();
+        new Main().printStartingScore();
     }
 
     private void printStartingScore() throws IOException, ClassNotFoundException, WhyAreYouEditingMyCodeException {
-        ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("scores.obj"));
+        ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(pathToSaveFile));
         HashMap<Long, Long> scores = (HashMap<Long, Long>) objectInputStream.readObject();
-        long startingPositionAsInt = getStartingPositionAsInt();
+        long startingPositionAsInt = getStartingPositionAsLong();
         System.out.println(startingPositionAsInt + " = " + scores.get(startingPositionAsInt));
     }
 
-    private long getStartingPositionAsInt() throws WhyAreYouEditingMyCodeException {
+    private long getStartingPositionAsLong() throws WhyAreYouEditingMyCodeException {
         List<Figure> figures = new ArrayList<>();
         for (int x = 0; x < fieldSize; x++) {
             for (int y = 0; y < fieldSize; y++) {
@@ -45,21 +47,7 @@ public class Main {
     }
 
     private void run() throws IllegalMoveException, WhyAreYouEditingMyCodeException, IOException {
-        List<Figure> figures = new ArrayList<>();
-        for (int x = 0; x < fieldSize; x++) {
-            for (int y = 0; y < fieldSize; y++) {
-                PlayerType type = NEUTRAL;
-                if (x == 0) {
-                    type = PLAYER1;
-                } else if (y == 0) {
-                    type = PLAYER2;
-                }
-                if (type != NEUTRAL && !(x == 0 && y == 0)) {
-                    figures.add(new Figure(x, y, type));
-                }
-            }
-        }
-        long field = posToLong(figures, PLAYER1);
+        long field = getStartingPositionAsLong();
         knownPositions.put(field, new ArrayList<>());
         addAllMoves(field);
         scores = new HashMap<>();
@@ -81,7 +69,7 @@ public class Main {
                 scores.put(key, 0);
             }
         }
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("scores.obj"));
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(pathToSaveFile));
         objectOutputStream.writeObject(scores);
         objectOutputStream.close();
         System.out.println("Finished");
@@ -109,9 +97,8 @@ public class Main {
         if (intList == null)
             return;
         List<Long> prev = intList.subList(0, intList.size());
-        knownPositions.remove(position);
         for (Long aLong : prev) {
-            setScores(aLong, -scoreToSet);
+            setScores(aLong, scoreToSet);
         }
     }
 
@@ -139,7 +126,7 @@ public class Main {
         }
     }
 
-    private PlayerType whoHasWon(Position pos) {
+    private PlayerType whoHasWon(Position pos) throws WhyAreYouEditingMyCodeException {
         if (getAllAllowedMoves(pos.getFigures(), pos.getPlayerToMove()).size() == 0) {
             return pos.getPlayerToMove();
         }
@@ -157,8 +144,13 @@ public class Main {
         for (Figure figure : figures) {
             if (figure.getX() == move.getxFrom() && figure.getY() == move.getyFrom()) {
                 if (figure.getPlayerType() == pos.getPlayerToMove()) {
-                    figure.setX(move.getxTo());
-                    figure.setY(move.getyTo());
+                    if (move.getxTo() == fieldSize || move.getyTo() == fieldSize) {
+                        figures.remove(figure);
+                        pos.setFigures(figures);
+                    } else {
+                        figure.setX(move.getxTo());
+                        figure.setY(move.getyTo());
+                    }
                     worked = true;
                     break;
                 }
@@ -180,7 +172,7 @@ public class Main {
         return wasAdded;
     }
 
-    private List<Move> getAllAllowedMoves(List<Figure> figures, PlayerType playerToMove) {
+    private List<Move> getAllAllowedMoves(List<Figure> figures, PlayerType playerToMove) throws WhyAreYouEditingMyCodeException {
         final List<Move> allowedMoves = new ArrayList<>();
         for (int i = 0; i < figures.size(); i++) {
             Figure figure = figures.get(i);
@@ -191,7 +183,7 @@ public class Main {
         return allowedMoves;
     }
 
-    private List<Move> getAllAllowedMoves(Figure figure, List<Figure> figures, PlayerType playerToMove) {
+    private List<Move> getAllAllowedMoves(Figure figure, List<Figure> figures, PlayerType playerToMove) throws WhyAreYouEditingMyCodeException {
         final List<Move> allowedMoves = new ArrayList<>();
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
@@ -206,24 +198,60 @@ public class Main {
         return allowedMoves;
     }
 
-    private boolean isAllowed(Move move, List<Figure> figures, PlayerType playerToMove, Figure figureToMove) {
+    private boolean isAllowed(Move move, List<Figure> figures, PlayerType playerToMove, Figure figureToMove) throws WhyAreYouEditingMyCodeException {
+        //check figure type
         if (figureToMove.getPlayerType() != playerToMove) {
             return false;
         }
-        if (Math.sqrt((move.getxFrom() - move.getxTo()) * (move.getxFrom() - move.getxTo()) + (move.getyFrom() - move.getyTo()) * (move.getyFrom() - move.getyTo())) != 1) {
+        //check distance
+        if ((move.getxFrom() - move.getxTo()) * (move.getxFrom() - move.getxTo()) + (move.getyFrom() - move.getyTo()) * (move.getyFrom() - move.getyTo()) != 1) {
             return false;
         }
+        //check if target location is blocked
         for (Figure figure : figures) {
             if (figure.getX() == move.getxTo() && figure.getY() == move.getyTo()) {
                 return false;
             }
         }
-        if (move.getxTo() > fieldSize + 1 || move.getyTo() > fieldSize + 1) {
+        //check if figure exists
+        if (!figures.contains(figureToMove)) {
             return false;
         }
-        if (move.getxTo() < 0 || move.getyTo() < 0) {
+        //check if too small
+        if (move.getxTo() < 0 || move.getyTo() < 0 || move.getxFrom() < 0 || move.getyFrom() < 0) {
             return false;
         }
+        //check if start too big
+        if (move.getxFrom() > fieldSize - 1 || move.getyFrom() > fieldSize - 1) {
+            return false;
+        }
+        //don't allow backwards movement
+        if (playerToMove == PLAYER1) {
+            if (move.getxFrom() > move.getxTo()) {
+                return false;
+            }
+            //check if out of bounds
+            if (move.getyTo() > fieldSize - 1) {
+                return false;
+            }
+            if (move.getxTo() > fieldSize) {
+                return false;
+            }
+        } else if (playerToMove == PLAYER2) {
+            if (move.getyFrom() > move.getyTo()) {
+                return false;
+            }
+            //check if out of bounds
+            if (move.getxTo() > fieldSize - 1) {
+                return false;
+            }
+            if (move.getyTo() > fieldSize) {
+                return false;
+            }
+        } else {
+            throw new WhyAreYouEditingMyCodeException();
+        }
+        //allow move
         return true;
     }
 
