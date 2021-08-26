@@ -22,7 +22,6 @@ public class PathFinder {
     }
 
     public static List<Position> findShortestPath(Position start, Position target, Predicate<Position> isAllowed) {
-        final long startTime = System.nanoTime();
         //try {
             Map<Position, Position> cache = new HashMap<>();
             Queue<Position> candidates = new PriorityQueue<>();
@@ -45,13 +44,13 @@ public class PathFinder {
                     }
                 }
                 if (cache.containsKey(target)) {
-                    return findPathReverse(start, target, cache);
+                    return findPathReverse(target, cache);
                 }
             }
 
             return cache.values().stream()
                     .min((a,b) -> Float.compare(a.distance, b.distance))
-                    .map(pos -> findPathReverse(start, pos, cache))
+                    .map(pos -> findPathReverse(pos, cache))
                     .orElse(Collections.singletonList(start));
 
         //} finally {
@@ -60,7 +59,7 @@ public class PathFinder {
         //}
     }
 
-    private static List<Position> findPathReverse(Position start, Position target, Map<Position, Position> cache) {
+    private static List<Position> findPathReverse(Position target, Map<Position, Position> cache) {
         Position pos = cache.get(target);
         final List<Position> result = new ArrayList<>();
         while (pos.previousPosition != null) {

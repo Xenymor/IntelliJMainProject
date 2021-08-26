@@ -4,13 +4,13 @@ import java.util.Arrays;
 
 public class Print {
     public static void println2DArray(double[][] array) {
-        for (int i = 0; i < array.length; i++) {
-            System.out.println(Arrays.toString(array[i]));
+        for (double[] doubles : array) {
+            System.out.println(Arrays.toString(doubles));
         }
     }
     public static void println2DArray(String[][] array) {
-        for (int i = 0; i < array.length; i++) {
-            System.out.println(Arrays.toString(array[i]));
+        for (String[] strings : array) {
+            System.out.println(Arrays.toString(strings));
         }
     }
 }

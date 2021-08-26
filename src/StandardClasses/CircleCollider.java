@@ -2,7 +2,7 @@ package StandardClasses;
 
 public class CircleCollider {
     private Vector2 pos;
-    private double radius;
+    private final double radius;
 
     public CircleCollider(Vector2 pos, double radius) {
         this.pos = pos;
