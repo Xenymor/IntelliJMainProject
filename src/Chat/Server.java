@@ -46,8 +46,7 @@ public class Server {
                 objectOutputStream.writeObject(Server.chat);
                 this.chat = new ArrayList<>();
                 name = (String) objectInputStream.readObject();
-                for (int i = 0; i < names.size(); i++) {
-                    String toCompare = names.get(i);
+                for (String toCompare : names) {
                     if (Objects.equals(toCompare, name)) {
                         socket.close();
                         return;
@@ -62,8 +61,9 @@ public class Server {
                         return;
                     } else {
                         if (chat.size() != Server.chat.size()) {
-                            objectOutputStream.writeObject(Server.chat.get(chat.size()));
-                            chat.add(Server.chat.get(chat.size()));
+                            final int newMsgIndex = chat.size();
+                            objectOutputStream.writeObject(Server.chat.get(newMsgIndex));
+                            chat.add(Server.chat.get(newMsgIndex));
                             System.out.println("Sent for " + System.identityHashCode(this));
                         }
                         if (inputStream.available() > 0) {
