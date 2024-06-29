@@ -8,9 +8,13 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 public class Client {
+
+    private static String ipAddress = "192.168.86.219";
+
     public static void println(String text, JTextArea textArea) {
         textArea.append(text + "\n");
         textArea.scrollRectToVisible(new Rectangle(0, textArea.getHeight(), 1, 1));
@@ -34,7 +38,16 @@ public class Client {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         jFrame.setSize(screenSize.width / 3, screenSize.height / 3 * 2);
         jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        println("Input Username", jTextArea);
+        System.out.println("Enter IP-Address");
+        while (true) {
+            try {
+                ipAddress = new Scanner(System.in).nextLine();
+                break;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        println("Enter Username", jTextArea);
         textField.addActionListener(new ActionListener() {
             boolean didGetCalled = false;
 
@@ -99,7 +112,7 @@ public class Client {
 //            } else {
 //                socket = new Socket(ip, 2002);
 //            }
-              socket = new Socket("192.168.86.30", 2002);
+            socket = new Socket(ipAddress, 2002);
         } catch (UnknownHostException e) {
             e.printStackTrace();
             socket = getSocket();

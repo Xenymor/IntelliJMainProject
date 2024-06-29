@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
@@ -61,18 +62,18 @@ public class Main {
 
         @Override
         public void keyReleased(KeyEvent e) {
-//            if (e.getKeyChar() == 'w') {
-//                wDown = false;
-//            }
-//            if (e.getKeyChar() == 'a') {
-//                aDown = false;
-//            }
-//            if (e.getKeyChar() == 's') {
-//                sDown = false;
-//            }
-//            if (e.getKeyChar() == 'd') {
-//                dDown = false;
-//            }
+            if (e.getKeyChar() == 'w') {
+                wDown = false;
+            }
+            if (e.getKeyChar() == 'a') {
+                aDown = false;
+            }
+            if (e.getKeyChar() == 's') {
+                sDown = false;
+            }
+            if (e.getKeyChar() == 'd') {
+                dDown = false;
+            }
         }
     };
 
@@ -107,7 +108,7 @@ public class Main {
                 return 0;
             }
         };
-        String s = (String) JOptionPane.showInputDialog(
+        name = (String) JOptionPane.showInputDialog(
                 frame,
                 "Wie heißt du?",
                 "Name",
@@ -115,7 +116,6 @@ public class Main {
                 icon,
                 null,
                 "Unbekannt");
-        name = s;
         Double d = (Double) JOptionPane.showInputDialog(
                 frame,
                 "Schwierigkeit (höher = schwieriger)",
@@ -164,14 +164,28 @@ class MyFrame extends JFrame {
 }
 
 class MyCanvas extends Canvas {
+    BufferedImage buffer;
+    Graphics g;
+
+    public MyCanvas() {
+        buffer = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        g = buffer.getGraphics();
+    }
+
     @Override
-    public void paint(Graphics g) {
-        g.clearRect(0, 0, (int) Main.windowSize.getX(), (int) Main.windowSize.getY());
+    public void paint(Graphics graphics) {
+        if (buffer.getWidth() != getWidth() || buffer.getHeight() != getHeight()) {
+            buffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+            g = buffer.getGraphics();
+        }
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, (int) Main.windowSize.getX(), (int) Main.windowSize.getY());
         // Move Stuff
         Main.snake.move();
         // Draw Stuff
         Main.snake.paint(g);
         Main.apple.paint(g);
+        graphics.drawImage(buffer, 0, 0, null);
         // wait
         try {
             TimeUnit.MILLISECONDS.sleep((long) Main.tickTime);
